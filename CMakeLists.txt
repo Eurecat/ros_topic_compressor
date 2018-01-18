@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   topic_tools
   std_msgs
   message_generation
+  roslz4
 )
 
 ## System dependencies are found with CMake's conventions
@@ -71,13 +72,13 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(topic_compressor          src/topic_compressor.cpp)
-add_dependencies(topic_compressor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} )
-target_link_libraries(topic_compressor   ${catkin_LIBRARIES} lz4 )
+add_executable(topic_compress_client          src/topic_compress_client.cpp)
+add_dependencies(topic_compress_client        ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} )
+target_link_libraries(topic_compress_client   ${catkin_LIBRARIES} )
 
-add_executable(topic_decompress         src/topic_decompress.cpp)
-add_dependencies(topic_decompress ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} )
-target_link_libraries(topic_decompress   ${catkin_LIBRARIES} lz4 )
+add_executable(topic_compress_server         src/topic_compress_server.cpp)
+add_dependencies(topic_compress_server       ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} )
+target_link_libraries(topic_compress_server  ${catkin_LIBRARIES} )
 
 #############
 ## Install ##
