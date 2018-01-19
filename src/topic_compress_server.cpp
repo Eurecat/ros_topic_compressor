@@ -9,9 +9,9 @@ class Compressor
 {
 
 public:
-  Compressor()
+  Compressor(): nh_("~")
   {
-    compression_request_ = nh_.subscribe("topics_to_compress", 1,
+    compression_request_ = nh_.subscribe("/topics_to_compress", 10,
                                          &Compressor::requestForCompressionCallback,
                                          this);
   }
@@ -32,6 +32,8 @@ private:
     {
       boost::function<void(const topic_tools::ShapeShifter::ConstPtr&)> callback;
       callback = boost::bind(&Compressor::topicCallback, this, _1, topic_name );
+
+      ROS_INFO("Subscribing to: %s", topic_name.c_str());
 
       auto subscriber = nh_.subscribe(topic_name, 1, callback);
       auto publisher = nh_.advertise<topic_compressor::TopicCompressed>(
@@ -57,6 +59,7 @@ private:
 
     if( publisher->getNumSubscribers() == 0)
     {
+    //  ROS_DEBUG("no subscriber: skip");
       return;
     }
 
@@ -96,7 +99,6 @@ private:
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "topic_compression_server");
-  ros::NodeHandle nh;
 
   Compressor compressor;
 

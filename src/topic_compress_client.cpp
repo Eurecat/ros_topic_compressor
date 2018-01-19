@@ -12,11 +12,11 @@ public:
     nh_(nh)
   {
       //Notify the compression server that you want a certain set of topics to be compressed
-      ros::Publisher pub_to_server = nh_.advertise<std_msgs::String>("topics_to_compress", 1);
+      pub_to_server_ = nh_.advertise<std_msgs::String>("/topics_to_compress", 10, true);
 
       std_msgs::String request_for_compression;
       request_for_compression.data = source_topics;
-      pub_to_server.publish(request_for_compression);
+      pub_to_server_.publish(request_for_compression);
 
       std::vector<std::string> split_vector;
       boost::split( split_vector, source_topics, boost::is_any_of(",;"), boost::token_compress_on );
@@ -29,8 +29,8 @@ public:
         source_topics_.insert(topic_name);
         boost::function<void(const topic_compressor::TopicCompressedConstPtr& msg)> callback;
         callback  = boost::bind( &Decompressor::callback, this, _1, topic_name);
-        ros::Subscriber subscriber = nh_.subscribe(topic_name + "/compressed", 1, callback);
-        subscribers_.insert( std::make_pair( topic_name, subscriber ) );
+        const std::string sub_to = topic_name + "/compressed";
+        subscribers_.insert( std::make_pair( topic_name, nh_.subscribe(sub_to, 10, callback) ) );
       }
   }
 
@@ -86,8 +86,8 @@ public:
     // if someone subscribe to the uncompressed message, the subscribe this client to the
     boost::function<void(const topic_compressor::TopicCompressedConstPtr& msg)> callback;
     callback  = boost::bind( &Decompressor::callback, this, _1, topic_name);
-    auto subscriber = nh_.subscribe(topic_name + "/compressed", 1, callback);
-    subscribers_.insert( std::make_pair( topic_name, subscriber ) );
+    const std::string sub_to = topic_name + "/compressed";
+    subscribers_[topic_name] = nh_.subscribe(sub_to, 10, callback);
   }
 
 private:
@@ -96,6 +96,7 @@ private:
   std::map<std::string,ros::Publisher>  publishers_;
   std::map<std::string,ros::Subscriber> subscribers_;
   std::set<std::string> source_topics_;
+  ros::Publisher pub_to_server_;
 
 };
 
@@ -106,7 +107,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "topic_decompressor_client");
 
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
 
   std::string topic_in;
   if( !nh.getParam("topics", topic_in) )
